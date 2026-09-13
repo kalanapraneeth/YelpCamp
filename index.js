@@ -5,17 +5,13 @@ const mongoose = require("mongoose");
 const session = require("express-session");
 const flash = require("connect-flash");
 
+const ExpressError = require("./utils/ExpressError");
+
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 
-const Campground = require("./models/campground");
-const Review = require("./models/review");
-const { campgroundSchema, reviewSchema } = require("./utils/schemas");
-
 const campgrounds = require("./routes/campgrounds");
 const reviews = require("./routes/reviews");
-
-const ExpressError = require("./utils/ExpressError");
 
 async function startServer() {
   try {

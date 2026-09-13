@@ -34,11 +34,7 @@ router.post(
   "/",
   validateCampground,
   catchAsync(async (req, res) => {
-    if (!req.body || !req.body.campground)
-      throw new ExpressError("Invalid Campground Data", 400);
-
     const campground = new Campground(req.body.campground);
-
     await campground.save();
     req.flash("success", "Successfully made a new campground!");
     res.redirect(`/campgrounds/${campground._id}`);
@@ -59,7 +55,6 @@ router.get(
     );
 
     if (!campground) {
-      // throw new ExpressError("Campground Not Found", 404);
       req.flash("error", "Campground Not Found");
       return res.redirect("/campgrounds");
     }
