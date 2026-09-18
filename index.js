@@ -4,14 +4,17 @@ const path = require("path");
 const mongoose = require("mongoose");
 const session = require("express-session");
 const flash = require("connect-flash");
-
 const ExpressError = require("./utils/ExpressError");
-
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
+const passport = require("passport");
+const LocalStrategy = require("passport-local");
 
-const campgrounds = require("./routes/campgrounds");
-const reviews = require("./routes/reviews");
+const campgroundRoutes = require("./routes/campgrounds");
+const reviewRoutes = require("./routes/reviews");
+const userRoutes = require("./routes/users");
+
+const User = require("./models/user");
 
 async function startServer() {
   try {
@@ -49,7 +52,6 @@ const sessionConfig = {
 };
 
 app.use(session(sessionConfig));
-
 app.use(flash());
 
 /// FLASH MIDDLEWARE for Flash Messages
@@ -61,13 +63,34 @@ app.use((req, res, next) => {
 
 ///Router Routes
 
-app.use("/campgrounds", campgrounds);
-app.use("/campgrounds/:id/reviews", reviews);
+app.use("/campgrounds", campgroundRoutes);
+app.use("/campgrounds/:id/reviews", reviewRoutes);
+app.use("/", userRoutes);
+
+//
+
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+
+/* below code is used to serialize and deserialize the user object to from a cookie. 
+This is necessary for maintaining the session state across different requests. 
+The `serializeUser` function sets the user object in the cookie and 
+the `deserializeUser` function retrieves the user object from the cookie. */
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 //
 
 app.get("/", (req, res) => {
   res.render("home");
+});
+
+app.get("/fakeUser", async (req, res) => {
+  const user = new User({ email: "test@test.com", username: "testuser" });
+  const newUser = await User.register(user, "testpassword");
+  res.send(newUser);
 });
 
 app.all("/{*path}", (req, res, next) => {
